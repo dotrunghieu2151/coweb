@@ -1,7 +1,9 @@
-export const questions = [
+import { shuffleArray } from "@/utils/helpers";
+
+const QUESTIONS = [
   {
     id: 'Q1',
-    type: 'multi-radio',
+    type: 'binary-radio',
     text: 'With consonants air passes rather freely through the mouth because there is very little narrowing.',
     options: [
       {
@@ -16,7 +18,7 @@ export const questions = [
   },
   {
     id: 'Q2',
-    type: 'multi-radio',
+    type: 'binary-radio',
     text: 'Labiodental consonants occur when you block airflow out of the mouth by bringing your lips together.',
     options: [
       {
@@ -54,7 +56,7 @@ export const questions = [
   },
   {
     id: 'Q4',
-    type: 'multi-radio',
+    type: 'binary-radio',
     text: 'Dental consonants occur when you block/constrict airflow by placing your slimy tongue against your upper teeth.',
     options: [
       {
@@ -92,7 +94,7 @@ export const questions = [
   },
   {
     id: 'Q6',
-    type: 'multi-radio',
+    type: 'binary-radio',
     text: 'The only palatal consonant is /j/.',
     options: [
       {
@@ -548,7 +550,7 @@ export const questions = [
   },
 ];
 
-export const answers = [
+const ANSWERS = [
   {
     id: 'A1',
     for: 'Q1',
@@ -676,3 +678,11 @@ export const answers = [
   },
 ]
 
+export const createTest = ({ questions = QUESTIONS, answers = ANSWERS }) => {
+  questions = [...questions];
+  const answersMap = answers.reduce((acc, answer) => {
+    return { ...acc, [answer.for]: answer }
+  }, {});
+  shuffleArray(questions);
+
+}
