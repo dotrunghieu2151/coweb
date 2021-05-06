@@ -109,7 +109,7 @@ const QUESTIONS = [
   },
   {
     id: 'Q7',
-    type: 'multi-radio',
+    type: 'multi-checkbox',
     text: 'Which of these consonants is NOT velar ?',
     options: [
       {
@@ -338,7 +338,7 @@ const QUESTIONS = [
     ]
   },
   {
-    id: 'Q16',
+    id: 'Q17',
     type: 'multi-radio',
     text: "When the vocal folds are held together, they start to vibrate when air passes through them. This phenomena is called ...",
     options: [
@@ -356,29 +356,6 @@ const QUESTIONS = [
       },
       {
         text: 'Voiceless',
-        value: 4,
-      },
-    ]
-  },
-  {
-    id: 'Q17',
-    type: 'multi-radio',
-    text: "Free air flow obstruction in English sound is called ?",
-    options: [
-      {
-        text: 'Consonant',
-        value: 1,
-      },
-      {
-        text: 'vowel',
-        value: 2,
-      },
-      {
-        text: 'Semi-vowel',
-        value: 3,
-      },
-      {
-        text: 'IPA',
         value: 4,
       },
     ]
@@ -409,6 +386,29 @@ const QUESTIONS = [
   {
     id: 'Q19',
     type: 'multi-radio',
+    text: "Free air flow obstruction in English sound is called ?",
+    options: [
+      {
+        text: 'Consonant',
+        value: 1,
+      },
+      {
+        text: 'vowel',
+        value: 2,
+      },
+      {
+        text: 'Semi-vowel',
+        value: 3,
+      },
+      {
+        text: 'IPA',
+        value: 4,
+      },
+    ]
+  },
+  {
+    id: 'Q20',
+    type: 'multi-radio',
     text: "The tongue position of vowel /i/, /u/ is ...",
     options: [
       {
@@ -430,7 +430,7 @@ const QUESTIONS = [
     ]
   },
   {
-    id: 'Q20',
+    id: 'Q21',
     type: 'multi-radio',
     text: "The position of the tongue of /u/, /o/, /a/ ...",
     options: [
@@ -453,7 +453,7 @@ const QUESTIONS = [
     ]
   },
   {
-    id: 'Q21',
+    id: 'Q22',
     type: 'multi-checkbox',
     text: "Which refers to vowel production?",
     options: [
@@ -484,7 +484,7 @@ const QUESTIONS = [
     ]
   },
   {
-    id: 'Q22',
+    id: 'Q23',
     type: 'multi-radio',
     text: "Place of articulation....",
     options: [
@@ -501,13 +501,13 @@ const QUESTIONS = [
         value: 3,
       },
       {
-        text: 'Dipdescribes where constriction happens to make a soundhthongs',
+        text: 'describes where constriction happens to make a soundhthongs',
         value: 4,
       },
     ]
   },
   {
-    id: 'Q23',
+    id: 'Q24',
     type: 'multi-radio',
     text: "Manner of articulation...",
     options: [
@@ -526,7 +526,7 @@ const QUESTIONS = [
     ]
   },
   {
-    id: 'Q24',
+    id: 'Q25',
     type: 'multi-radio',
     text: "Choose the best description for the first sound in the American pronunciation of the word 'teeth.'",
     options: [
@@ -562,11 +562,6 @@ const ANSWERS = [
     value: false
   },
   {
-    id: 'A2',
-    for: 'Q2',
-    value: false
-  },
-  {
     id: 'A3',
     for: 'Q3',
     value: 3
@@ -589,7 +584,7 @@ const ANSWERS = [
   {
     id: 'A7',
     for: 'Q7',
-    value: 3
+    value: [3, 4]
   },
   {
     id: 'A8',
@@ -619,7 +614,7 @@ const ANSWERS = [
   {
     id: 'A13',
     for: 'Q13',
-    value: 2
+    value: 4
   },
   {
     id: 'A14',
@@ -659,30 +654,85 @@ const ANSWERS = [
   {
     id: 'A21',
     for: 'Q21',
-    value: [3, 4]
+    value: 1
   },
   {
     id: 'A22',
     for: 'Q22',
-    value: 3
+    value: [3, 4]
   },
   {
     id: 'A23',
     for: 'Q23',
-    value: 2
+    value: 3
   },
   {
     id: 'A24',
     for: 'Q24',
+    value: 2
+  },
+  {
+    id: 'A25',
+    for: 'Q25',
     value: 1
   },
 ]
 
-export const createTest = ({ questions = QUESTIONS, answers = ANSWERS }) => {
-  questions = [...questions];
-  const answersMap = answers.reduce((acc, answer) => {
-    return { ...acc, [answer.for]: answer }
-  }, {});
-  shuffleArray(questions);
+const getAnswerMap = () => ANSWERS.reduce((acc, answer) => {
+  return { ...acc, [answer.for]: answer }
+}, {});
 
+const getQuestionMap = () => QUESTIONS.reduce((acc, question) => {
+  return { ...acc, [question.id]: question }
+}, {});
+
+const compareAnswer = ({ question, answer, userAnswer }) => {
+  switch (question.type) {
+    case 'binary-radio':
+    case 'multi-radio':
+      return answer.value == userAnswer.value;
+
+    case 'multi-checkbox':
+      return answer.value.length === userAnswer.value.length &&
+        answer.value.every(v => userAnswer.value.includes(v));
+
+    default:
+      throw new Error("unsupported question type: " + question.type);
+  }
 }
+
+
+export const createTest = (questions = QUESTIONS) => {
+  questions = [...questions];
+  shuffleArray(questions);
+  questions.forEach((q) => {
+    (q.type !== 'binary-radio') && shuffleArray(q.options);
+  });
+  return questions;
+}
+
+export const markTest = (userAnswers) => {
+  const answerMap = getAnswerMap();
+  const questionMap = getQuestionMap();
+  const result = [];
+  let score = 0;
+  const total = Object.keys(questionMap).length;
+  userAnswers.forEach(userAnswer => {
+    const question = questionMap[userAnswer.for];
+    const answer = answerMap[userAnswer.for];
+    const isCorrect = compareAnswer({
+      question,
+      answer,
+      userAnswer
+    });
+    isCorrect && ++score;
+    result.push({
+      ...question,
+      isCorrect,
+      correctAnwser: answer.value,
+      userAnswer: userAnswer.value,
+    })
+  });
+  return { result, score, total };
+}
+

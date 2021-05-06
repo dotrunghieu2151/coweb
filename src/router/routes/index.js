@@ -1,4 +1,5 @@
 import home from './home'
+import test from './test'
 import theory from './theory'
 import flashcards from './flashcards'
 import _404 from '@/views/_404';
@@ -7,6 +8,7 @@ export default [
   home,
   ...theory,
   flashcards,
+  ...test,
   {
     path: '/404',
     name: '404',
